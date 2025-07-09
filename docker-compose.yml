@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: order_postgres
+
+    # Sets the name of the database to be created in the container.
+    # This must match the DB name used in spring.datasource.url
+    environment:
+      POSTGRES_DB: retaildb
+      POSTGRES_USER: retail_user
+      POSTGRES_PASSWORD: retail_pass
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # Increases the max connections allowed by PostgreSQL
+    command: ["postgres", "-c", "max_connections=2000"]
+
+volumes:
+  postgres_data:
