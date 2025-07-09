@@ -24,14 +24,20 @@ public class RestClientConfig {
     private String baseUrl;
 
     @Bean
-    public RestClient restClient(){
+    public RestClient restClient() {
         logger.info("base url: {}", baseUrl);
         var builder = RestClient.builder().baseUrl(baseUrl);
-        if(isVirtualThreadEnabled){
+
+        if (isVirtualThreadEnabled) {
+            logger.info("Virtual threads enabled - configuring RestClient with HTTP/1.1");
             builder = builder.requestFactory(new JdkClientHttpRequestFactory(
-                    HttpClient.newBuilder().executor(Executors.newVirtualThreadPerTaskExecutor()).build()
+                    HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_1_1) // Enforce HTTP/1.1 to bypass HTTP/2 stream limits
+                            .executor(Executors.newVirtualThreadPerTaskExecutor())
+                            .build()
             ));
         }
+
         return builder.build();
     }
 
