@@ -20,7 +20,9 @@ public class RestClientService {
     }
 
     public String callExternalApi() {
-        logger.info("Calling external API using RestClient at {}", baseUrl + "/delay/2");
-        return restClient.get().uri("/delay/2").retrieve().body(String.class);
+        String urlSuffix = "/delay/2";
+
+        logger.info("Calling external API using RestClient at {}", baseUrl + urlSuffix);
+        return restClient.get().uri(urlSuffix).retrieve().body(String.class);
     }
 }

@@ -12,33 +12,28 @@ import org.springframework.web.client.RestTemplate;
 import java.net.http.HttpClient;
 import java.util.concurrent.Executors;
 
-@Configuration
+//@Configuration
 public class RestClientConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(RestClientConfig.class);
-
-    @Value("${spring.threads.virtual.enabled}")
-    private boolean isVirtualThreadEnabled;
 
     @Value("${base.url}")
     private String baseUrl;
 
     @Bean
     public RestClient restClient() {
-        logger.info("base url: {}", baseUrl);
-        var builder = RestClient.builder().baseUrl(baseUrl);
+        logger.info("Configuring RestClient with JDK HttpClient and virtual thread executor");
+        logger.info("Base URL: {}", baseUrl);
 
-        if (isVirtualThreadEnabled) {
-            logger.info("Virtual threads enabled - configuring RestClient with HTTP/1.1");
-            builder = builder.requestFactory(new JdkClientHttpRequestFactory(
-                    HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_1_1) // Enforce HTTP/1.1 to bypass HTTP/2 stream limits
-                            .executor(Executors.newVirtualThreadPerTaskExecutor())
-                            .build()
-            ));
-        }
+        HttpClient httpClient = HttpClient.newBuilder()
+                .executor(Executors.newVirtualThreadPerTaskExecutor())
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
 
-        return builder.build();
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(new JdkClientHttpRequestFactory(httpClient))
+                .build();
     }
 
     @Bean
