@@ -4,7 +4,7 @@
   "title": "JMeter HTTP Metrics Dashboard",
   "timezone": "browser",
   "schemaVersion": 36,
-  "version": 2,
+  "version": 3,
   "refresh": "5s",
   "time": {
     "from": "now-30m",
@@ -20,8 +20,8 @@
       "title": "Active Threads",
       "targets": [
         {
-          "expr": "jmeter_threads{state=\"active\"}",
-          "legendFormat": "active threads",
+          "expr": "sum(http_active_threads_gauge)",
+          "legendFormat": "Active Threads",
           "refId": "A"
         }
       ],
@@ -38,7 +38,7 @@
       "targets": [
         {
           "expr": "rate(http_response_time_histogram_sum[1m]) / rate(http_response_time_histogram_count[1m])",
-          "legendFormat": "avg response time (ms)",
+          "legendFormat": "Avg Response Time (ms)",
           "refId": "B"
         }
       ],
@@ -54,8 +54,8 @@
       "title": "HTTP Success Count",
       "targets": [
         {
-          "expr": "http_response_time_histogram_count",
-          "legendFormat": "success count",
+          "expr": "increase(http_success_total[1m])",
+          "legendFormat": "Success Count",
           "refId": "C"
         }
       ],
@@ -68,11 +68,28 @@
     },
     {
       "type": "timeseries",
-      "title": "Transactions Per Second (TPS)",
+      "title": "HTTP Failure Count",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "targets": [
         {
-          "expr": "rate(http_response_time_histogram_count[1m])",
-          "legendFormat": "TPS",
+          "expr": "increase(http_failure_total[1m])",
+          "legendFormat": "Failure Count",
           "refId": "D"
         }
       ],
@@ -80,6 +97,23 @@
         "x": 12,
         "y": 8,
         "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Transactions Per Second (TPS)",
+      "targets": [
+        {
+          "expr": "rate(http_response_time_histogram_count[1m])",
+          "legendFormat": "TPS",
+          "refId": "E"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
         "h": 8
       }
     }
