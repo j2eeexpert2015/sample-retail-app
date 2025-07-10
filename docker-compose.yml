@@ -1,23 +1,37 @@
 services:
-  postgres:
+  order_postgres:
     image: postgres:15
     container_name: order_postgres
-
-    # Sets the name of the database to be created in the container.
-    # This must match the DB name used in spring.datasource.url
     environment:
       POSTGRES_DB: retaildb
       POSTGRES_USER: retail_user
       POSTGRES_PASSWORD: retail_pass
-
     ports:
       - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-    # Increases the max connections allowed by PostgreSQL
     command: ["postgres", "-c", "max_connections=2000"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/provisioning:/etc/grafana/provisioning
 
 volumes:
   postgres_data:
+  grafana_data:
