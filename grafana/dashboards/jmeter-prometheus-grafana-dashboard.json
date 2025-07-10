@@ -20,7 +20,7 @@
       "title": "Active Threads",
       "targets": [
         {
-          "expr": "sum(http_active_threads_gauge)",
+          "expr": "jmeter_threads{state=\"active\"}",
           "legendFormat": "Active Threads",
           "refId": "A"
         }
