@@ -5,3 +5,7 @@ scrape_configs:
   - job_name: 'jmeter'
     static_configs:
       - targets: ['host.docker.internal:9270']
+  - job_name: 'jfr-metrics-app'
+    static_configs:
+      - targets: ['localhost:8080']  # Use host.docker.internal:8080 if running in Docker
+    metrics_path: /actuator/prometheus  # Use /metrics for standalone Java app
