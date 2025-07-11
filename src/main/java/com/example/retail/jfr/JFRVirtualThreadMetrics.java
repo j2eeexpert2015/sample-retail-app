@@ -11,19 +11,23 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Component that listens to JFR events for virtual threads and exports metrics to Micrometer.
+ * Component that listens to JFR events for virtual threads and exports metrics to Micrometer,
+ * including duration (pinnedTimer) and event counts (pinnedEventCounter) without logging.
  */
 @Component
 public class JFRVirtualThreadMetrics {
 
+    private final MeterRegistry registry; // Injected and stored for use
     private final Counter startCounter;
     private final Counter endCounter;
     private final Timer pinnedTimer;
+    private final Counter pinnedEventCounter;
 
     /**
      * Constructor to initialize Micrometer metrics counters and timer.
      */
     public JFRVirtualThreadMetrics(MeterRegistry registry) {
+        this.registry = registry; // Store the registry for later use
         this.startCounter = Counter.builder("jfr_virtual_thread_starts_total")
                 .description("Total number of virtual thread starts")
                 .register(registry);
@@ -34,6 +38,10 @@ public class JFRVirtualThreadMetrics {
 
         this.pinnedTimer = Timer.builder("jfr_virtual_thread_pinned_seconds")
                 .description("Duration of virtual thread pinning events")
+                .register(registry);
+
+        this.pinnedEventCounter = Counter.builder("jfr_virtual_thread_pinned_events_total")
+                .description("Total number of virtual thread pinning events")
                 .register(registry);
     }
 
@@ -53,9 +61,12 @@ public class JFRVirtualThreadMetrics {
                 rs.onEvent("jdk.VirtualThreadPinned", event -> {
                     long durationNanos = event.getDuration().toNanos();
                     pinnedTimer.record(durationNanos, TimeUnit.NANOSECONDS);
+                    pinnedEventCounter.increment(); // Increment total pinning events
                 });
 
                 rs.start();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
 
