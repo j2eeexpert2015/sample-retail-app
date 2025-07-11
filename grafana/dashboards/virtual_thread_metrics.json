@@ -114,9 +114,6 @@
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single"
         }
       },
       "targets": [
@@ -300,6 +297,66 @@
       ],
       "title": "Total Pinning Events (Cumulative)",
       "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794F2"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "expr": "jvm_threads_states_threads{state=\"runnable\"}",
+          "legendFormat": "Runnable Platform Threads",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Platform Threads (Runnable)",
+      "type": "timeseries"
     }
   ],
   "refresh": "5s",

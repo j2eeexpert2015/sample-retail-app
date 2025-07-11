@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+// Removed: import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Component that listens to JFR events for virtual threads and exports metrics to Micrometer,
@@ -22,6 +23,7 @@ public class JFRVirtualThreadMetrics {
     private final Counter endCounter;
     private final Timer pinnedTimer;
     private final Counter pinnedEventCounter;
+    // Removed: private final AtomicLong activeVirtualThreads = new AtomicLong(0);
 
     /**
      * Constructor to initialize Micrometer metrics counters and timer.
@@ -43,6 +45,8 @@ public class JFRVirtualThreadMetrics {
         this.pinnedEventCounter = Counter.builder("jfr_virtual_thread_pinned_events_total")
                 .description("Total number of virtual thread pinning events")
                 .register(registry);
+
+        // Removed: registry.gauge("jfr_virtual_thread_active_current", activeVirtualThreads);
     }
 
     /**
@@ -56,8 +60,14 @@ public class JFRVirtualThreadMetrics {
                 rs.enable("jdk.VirtualThreadEnd");
                 rs.enable("jdk.VirtualThreadPinned").withThreshold(Duration.ofMillis(20));
 
-                rs.onEvent("jdk.VirtualThreadStart", event -> startCounter.increment());
-                rs.onEvent("jdk.VirtualThreadEnd", event -> endCounter.increment());
+                rs.onEvent("jdk.VirtualThreadStart", event -> {
+                    startCounter.increment();
+                    // Removed: activeVirtualThreads.incrementAndGet();
+                });
+                rs.onEvent("jdk.VirtualThreadEnd", event -> {
+                    endCounter.increment();
+                    // Removed: activeVirtualThreads.decrementAndGet();
+                });
                 rs.onEvent("jdk.VirtualThreadPinned", event -> {
                     long durationNanos = event.getDuration().toNanos();
                     pinnedTimer.record(durationNanos, TimeUnit.NANOSECONDS);
