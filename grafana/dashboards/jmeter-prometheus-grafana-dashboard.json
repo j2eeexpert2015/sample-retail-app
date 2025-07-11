@@ -28,7 +28,7 @@
       "gridPos": {
         "x": 0,
         "y": 0,
-        "w": 12,
+        "w": 24,
         "h": 8
       }
     },
@@ -43,9 +43,26 @@
         }
       ],
       "gridPos": {
-        "x": 12,
-        "y": 0,
-        "w": 12,
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Transactions Per Second (TPS)",
+      "targets": [
+        {
+          "expr": "rate(http_response_time_histogram_count[1m])",
+          "legendFormat": "TPS",
+          "refId": "E"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
         "h": 8
       }
     },
@@ -61,7 +78,7 @@
       ],
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 24,
         "w": 12,
         "h": 8
       }
@@ -95,25 +112,8 @@
       ],
       "gridPos": {
         "x": 12,
-        "y": 8,
+        "y": 24,
         "w": 12,
-        "h": 8
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Transactions Per Second (TPS)",
-      "targets": [
-        {
-          "expr": "rate(http_response_time_histogram_count[1m])",
-          "legendFormat": "TPS",
-          "refId": "E"
-        }
-      ],
-      "gridPos": {
-        "x": 0,
-        "y": 16,
-        "w": 24,
         "h": 8
       }
     }
