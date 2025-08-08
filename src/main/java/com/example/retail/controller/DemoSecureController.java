@@ -6,5 +6,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DemoSecureController {
     @GetMapping("/security-demo/hello")
-    public String hello() { return "Hello, secured world!"; }
+    public String hello()
+    {
+        return "Hello, secured world!";
+    }
 }
