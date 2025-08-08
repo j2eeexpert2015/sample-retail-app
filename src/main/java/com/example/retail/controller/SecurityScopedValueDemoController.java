@@ -13,17 +13,18 @@ import java.util.concurrent.StructuredTaskScope;
 public class SecurityScopedValueDemoController {
     private static final Logger log = LoggerFactory.getLogger(SecurityScopedValueDemoController.class);
 
-    @GetMapping("/security-demo/threadlocal/baseline")
+    // Moved under /security-demo/sv/** to avoid clashes with existing controller(s)
+    @GetMapping("/security-demo/sv/threadlocal/baseline")
     public String threadLocalBaseline() {
         var a = SecurityContextHolder.getContext().getAuthentication();
         return "ThreadLocal baseline user = " + (a != null ? a.getName() : "null");
     }
 
-    @GetMapping("/security-demo/threadlocal/structured")
+    @GetMapping("/security-demo/sv/threadlocal/structured")
     public String threadLocalStructured() throws Exception {
         try (var scope = new StructuredTaskScope.ShutdownOnSuccess<String>()) {
             var sub = scope.fork(() -> {
-                var a = SecurityContextHolder.getContext().getAuthentication(); // usually null in child vthread
+                var a = SecurityContextHolder.getContext().getAuthentication(); // likely null in child vthread
                 log.info("[ThreadLocal] child vthread auth = {}", a);
                 return "child(ThreadLocal) user=" + (a != null ? a.getName() : "null");
             });
@@ -32,13 +33,13 @@ public class SecurityScopedValueDemoController {
         }
     }
 
-    @GetMapping("/security-demo/scopedvalue/baseline")
+    @GetMapping("/security-demo/sv/scopedvalue/baseline")
     public String scopedBaseline() {
         var a = ScopedAuth.AUTH.get();
         return "ScopedValue baseline user = " + (a != null ? a.getName() : "null");
     }
 
-    @GetMapping("/security-demo/scopedvalue/structured")
+    @GetMapping("/security-demo/sv/scopedvalue/structured")
     public String scopedStructured() throws Exception {
         try (var scope = new StructuredTaskScope.ShutdownOnSuccess<String>()) {
             var sub = scope.fork(() -> {
@@ -51,4 +52,3 @@ public class SecurityScopedValueDemoController {
         }
     }
 }
-

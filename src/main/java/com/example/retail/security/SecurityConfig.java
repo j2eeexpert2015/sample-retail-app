@@ -5,8 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.SecurityContextHolderFilter;
-import com.example.retail.security.ScopedAuthBindingFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration // Spring configuration class
 public class SecurityConfig {
@@ -23,15 +22,14 @@ public class SecurityConfig {
                 // Use HTTP Basic authentication for simplicity
                 .httpBasic(Customizer.withDefaults())
 
-                // Disable CSRF for demo purposes only
+                // Disable CSRF for demo/demo
                 .csrf(csrf -> csrf.disable())
 
                 /*
-                 * Bind Authentication into a ScopedValue for the duration of the request so it
-                 * propagates to child virtual threads. We add the filter AFTER
-                 * SecurityContextHolderFilter so that Authentication is already populated.
+                 * Bind Authentication into a ScopedValue AFTER BasicAuthenticationFilter
+                 * so Authentication is already populated for the current request.
                  */
-                .addFilterAfter(scopedAuthBindingFilter(), SecurityContextHolderFilter.class);
+                .addFilterAfter(scopedAuthBindingFilter(), BasicAuthenticationFilter.class);
 
         return http.build();
     }
