@@ -13,20 +13,19 @@ import java.util.concurrent.StructuredTaskScope;
 public class SecurityScopedValueDemoController {
     private static final Logger log = LoggerFactory.getLogger(SecurityScopedValueDemoController.class);
 
-    // Moved under /security-demo/sv/** to avoid clashes with existing controller(s)
     @GetMapping("/security-demo/sv/threadlocal/baseline")
     public String threadLocalBaseline() {
-        var a = SecurityContextHolder.getContext().getAuthentication();
-        return "ThreadLocal baseline user = " + (a != null ? a.getName() : "null");
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return "ThreadLocal baseline user = " + (authentication != null ? authentication.getName() : "null");
     }
 
     @GetMapping("/security-demo/sv/threadlocal/structured")
     public String threadLocalStructured() throws Exception {
         try (var scope = new StructuredTaskScope.ShutdownOnSuccess<String>()) {
             var sub = scope.fork(() -> {
-                var a = SecurityContextHolder.getContext().getAuthentication(); // likely null in child vthread
-                log.info("[ThreadLocal] child vthread auth = {}", a);
-                return "child(ThreadLocal) user=" + (a != null ? a.getName() : "null");
+                var authentication = SecurityContextHolder.getContext().getAuthentication(); // likely null in child vthread
+                log.info("ThreadLocal child virtual thread auth = {}", authentication);
+                return "ThreadLocal user(from child thread)=" + (authentication != null ? authentication.getName() : "null");
             });
             scope.join();
             return sub.get();
@@ -35,20 +34,20 @@ public class SecurityScopedValueDemoController {
 
     @GetMapping("/security-demo/sv/scopedvalue/baseline")
     public String scopedBaseline() {
-        var a = ScopedAuth.AUTH.get();
-        return "ScopedValue baseline user = " + (a != null ? a.getName() : "null");
+        var authentication = ScopedAuth.AUTH.get();
+        return "ScopedValue baseline user = " + (authentication != null ? authentication.getName() : "null");
     }
 
     @GetMapping("/security-demo/sv/scopedvalue/structured")
     public String scopedStructured() throws Exception {
         try (var scope = new StructuredTaskScope.ShutdownOnSuccess<String>()) {
-            var sub = scope.fork(() -> {
-                var a = ScopedAuth.AUTH.get(); // propagated to child vthread
-                log.info("[ScopedValue] child vthread user = {}", a != null ? a.getName() : null);
-                return "child(ScopedValue) user=" + (a != null ? a.getName() : "null");
+            var subtask = scope.fork(() -> {
+                var authentication = ScopedAuth.AUTH.get(); // propagated to child vthread
+                log.info("ScopedValue child virtual thread auth= {}", authentication != null ? authentication.getName() : null);
+                return "ScopedValue user(from child thread)=" + (authentication != null ? authentication.getName() : "null");
             });
             scope.join();
-            return sub.get();
+            return subtask.get();
         }
     }
 }
