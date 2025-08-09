@@ -13,25 +13,6 @@ import java.util.concurrent.StructuredTaskScope;
 public class SecurityScopedValueDemoController {
     private static final Logger log = LoggerFactory.getLogger(SecurityScopedValueDemoController.class);
 
-    @GetMapping("/security-demo/sv/threadlocal/baseline")
-    public String threadLocalBaseline() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        return "ThreadLocal baseline user = " + (authentication != null ? authentication.getName() : "null");
-    }
-
-    @GetMapping("/security-demo/sv/threadlocal/structured")
-    public String threadLocalStructured() throws Exception {
-        try (var scope = new StructuredTaskScope.ShutdownOnSuccess<String>()) {
-            var sub = scope.fork(() -> {
-                var authentication = SecurityContextHolder.getContext().getAuthentication(); // likely null in child vthread
-                log.info("ThreadLocal child virtual thread auth = {}", authentication);
-                return "ThreadLocal user(from child thread)=" + (authentication != null ? authentication.getName() : "null");
-            });
-            scope.join();
-            return sub.get();
-        }
-    }
-
     @GetMapping("/security-demo/sv/scopedvalue/baseline")
     public String scopedBaseline() {
         var authentication = ScopedAuth.AUTH.get();
