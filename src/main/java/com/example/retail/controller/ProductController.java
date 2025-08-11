@@ -16,7 +16,6 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    @GetMapping("/place_old")
     public ResponseEntity<String> placeOrder() {
     	productService.callDBService();
         return ResponseEntity.ok("success");
