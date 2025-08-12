@@ -2,9 +2,11 @@ package com.example.retail.controller;
 
 import com.example.retail.service.RestClientService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/restclient") // Class-level mapping
 public class RestClientController {
 
     private final RestClientService service;
@@ -13,8 +15,8 @@ public class RestClientController {
         this.service = service;
     }
 
-    @GetMapping("/restclient")
-    public String useRestClient() {
+    @GetMapping("/external")
+    public String callInternalEndpoint() {
         return service.callExternalApi();
     }
 }

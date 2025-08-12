@@ -282,7 +282,7 @@
         </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
         <hashTree/>
       </hashTree>
-      <com.example.jmeter.plugin.CustomThreadGroup guiclass="com.example.jmeter.plugin.CustomThreadGroupGui" testclass="com.example.jmeter.plugin.CustomThreadGroup" testname="Rest_Call_With_Platform_Thread" enabled="false">
+      <com.example.jmeter.plugin.CustomThreadGroup guiclass="com.example.jmeter.plugin.CustomThreadGroupGui" testclass="com.example.jmeter.plugin.CustomThreadGroup" testname="RestTemplate_Call_With_Platform_Thread" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
           <stringProp name="LoopController.loops">1</stringProp>
@@ -296,11 +296,11 @@
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
       </com.example.jmeter.plugin.CustomThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request">
           <stringProp name="HTTPSampler.domain">localhost</stringProp>
           <stringProp name="HTTPSampler.port">8081</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
-          <stringProp name="HTTPSampler.path">/order/hello</stringProp>
+          <stringProp name="HTTPSampler.path">/restclient/external</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
