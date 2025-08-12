@@ -84,7 +84,7 @@
 
     <build>
         <!-- Custom JAR file name -->
-        <finalName>retail-app-vt-disabled</finalName>
+        <finalName>retail-app-vt-enabled</finalName>
         <plugins>
             <!-- Spring Boot Plugin -->
             <plugin>
