@@ -12,6 +12,18 @@ Use this when you want a **baseline with platform threads** and to run on a **no
 - This passes **Spring Boot application arguments** (not JVM `-D` flags).
 - Same command works in **Windows (CMD/PowerShell)** and **macOS/Linux**.
 
+### 📈 JMeter CLI: Run & Generate HTML Report
+Windows (single line, write **JTL** to **..\jtl** and **HTML report + log** to **..\report**)
+
+    jmeter -n -t Rest_Call_Test_Plan.jmx -l ..\jtl\Rest_Call_Test_Plan.jtl -j ..\report\jmeter.log -e -o ..\report\Rest_Call_Test_Report -f
+
+## Flags:
+- -n non-GUI mode
+- -t test plan (.jmx)
+- -l results (.jtl)
+- -j JMeter run log
+- -e -o dir_name generate HTML dashboard
+- -f overwrite output dir
 ### Optional Variants
 
     # Default port (8080), virtual threads ENABLED (JDK 21+)
@@ -54,25 +66,10 @@ Use this when you want a **baseline with platform threads** and to run on a **no
     # Run (virtual threads on 8080)
     mvn spring-boot:run -Dspring-boot.run.arguments="--spring.threads.virtual.enabled=true"
 
-## 📏 Why 200 Threads Can Still Do 4K RPS
-Throughput ≈ **concurrency / avg_latency** (Little’s Law). If your handler completes in ~50 ms, then `200 / 0.05 ≈ 4,000 RPS`. Add blocking (sleep/DB/HTTP), and RPS falls proportionally. Virtual threads help primarily with **blocking I/O** by parking the vthread (freeing the carrier).
-
 ## 🧪 Quick JMeter Recipe
-- Thread Group: enough users to saturate (no think time)
-- HTTP Request: hit `/order/hello` (0 ms), then try with a controlled delay parameter if implemented
 - Charts to watch: **Active Threads Over Time**, **Response Times Over Time**, **Transactions Per Second**
-- Cross-check: **concurrency ≈ RPS × latency**; plateau near your effective concurrency limit
 
-## 🛠 Configuration Tips (common keys)
-- `--server.port=8081` → choose port
-- `--spring.threads.virtual.enabled=true|false` → toggle vthreads
-- `-Dserver.tomcat.threads.max=...` (JVM system property) → adjust Tomcat worker pool if needed
-- Avoid mixing app args and JVM props for the same key in one run
 
-## 🧯 Troubleshooting
-- **`Invalid character found in method name [SSH-2.0-...]`**: a non-HTTP client (e.g., SSH scanner) hit your HTTP port. Harmless; restrict ingress or proxy Tomcat if noisy.
-- **`no main manifest attribute` when running a JAR**: use `spring-boot:run` or ensure you built a Spring Boot fat JAR via the Spring Boot Maven Plugin.
-- **Do I need `--enable-preview`?** Not for virtual threads on JDK **21+**. Only add it if you use other preview features.
 
 ## 🔍 Working with `jdk.internal.vm.Continuation` in IntelliJ IDEA
 `jdk.internal.vm.Continuation` is an internal JDK API used by Project Loom to implement virtual threads. If you explore it directly, allow access via VM options.
