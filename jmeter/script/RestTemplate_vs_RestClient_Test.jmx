@@ -1133,7 +1133,7 @@
         </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="RestTemplate_VT_With_10000_User">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="RestTemplate_VT_With_8000_User" enabled="true">
         <intProp name="ThreadGroup.num_threads">8000</intProp>
         <intProp name="ThreadGroup.ramp_time">20</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -1146,7 +1146,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="RestTemplate_VT_With_10000_User">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="RestTemplate_VT_With_8000_User">
           <stringProp name="HTTPSampler.domain">${host}</stringProp>
           <stringProp name="HTTPSampler.port">${port-resttemplate}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -1407,7 +1407,7 @@
         </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="RestClient_VT_With_10000_User">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="RestClient_VT_With_8000_User">
         <intProp name="ThreadGroup.num_threads">8000</intProp>
         <intProp name="ThreadGroup.ramp_time">20</intProp>
         <longProp name="ThreadGroup.duration">60</longProp>
@@ -1420,7 +1420,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="RestClient_VT_With_10000_User">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="RestClient_VT_With_8000_User">
           <stringProp name="HTTPSampler.domain">${host}</stringProp>
           <stringProp name="HTTPSampler.port">${port-restclient}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -1434,7 +1434,7 @@
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree/>
-        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
