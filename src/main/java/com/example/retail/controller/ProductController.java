@@ -1,5 +1,6 @@
 package com.example.retail.controller;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,15 @@ public class ProductController {
     // HTTP GET endpoint to place an order using a product ID
     @GetMapping("/placeorder/{productId}")
     public ResponseEntity<String> placeOrder(@PathVariable String productId) {
+        logger.info("Placing order for product ID: {}", productId);
+        return placeOrder();
+    }
+
+
+    // HTTP GET endpoint to place an order using a product ID
+    @GetMapping("/placeorderratelimit/{productId}")
+    @RateLimiter(name = "dbServiceRateLimiter")
+    public ResponseEntity<String> placeOrderWithRateLimitingEnabled(@PathVariable String productId) {
         logger.info("Placing order for product ID: {}", productId);
         return placeOrder();
     }
