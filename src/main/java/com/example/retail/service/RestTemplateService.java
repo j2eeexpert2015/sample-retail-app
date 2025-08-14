@@ -3,43 +3,47 @@ package com.example.retail.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+/*
+ Uses the explicitly named RestTemplate bean "classicRestTemplate" to avoid ambiguity.
+ Provides external and internal calls for baseline comparisons against RestClient variants.
+*/
 @Service
 public class RestTemplateService {
 
     private static final Logger logger = LoggerFactory.getLogger(RestTemplateService.class);
 
-    private final RestTemplate restTemplate;
-    private final String baseUrl;
+    private final RestTemplate classicRestTemplate; // bean: "classicRestTemplate"
 
-    @Value("${server.port}")
-    private int serverPort; // current app port
+    @Value("${base.url}")
+    private String externalBaseUrl;
 
-    public RestTemplateService(RestTemplate restTemplate, @Value("${base.url}") String baseUrl) {
-        this.restTemplate = restTemplate;
-        this.baseUrl = baseUrl;
+    @Value("${server.port:8080}")
+    private int serverPort;
+
+    public RestTemplateService(@Qualifier("classicRestTemplate") RestTemplate classicRestTemplate) {
+        this.classicRestTemplate = classicRestTemplate;
     }
 
-    /** Calls an external API and logs only the total time at the end. */
-    public String callExternalApi() {
-        String url = baseUrl + "/delay/2";
+    public String callExternalUsingClassicRestTemplate() {
+        String url = externalBaseUrl + "/delay/2";
         long start = System.nanoTime();
-        String response = restTemplate.getForObject(url, String.class);
+        String body = classicRestTemplate.getForObject(url, String.class);
         long durationMs = (System.nanoTime() - start) / 1_000_000L;
-        logger.info("External API GET {} completed in {} ms", url, durationMs);
-        return response;
+        logger.info("Classic RestTemplate → external {} completed in {} ms", url, durationMs);
+        return body;
     }
 
-    /** Calls another controller in this app via HTTP and logs only the total time at the end. */
-    public String callInternalEndpoint() {
+    public String callInternalUsingClassicRestTemplate() {
         String url = "http://localhost:" + serverPort + "/order/hello";
         long start = System.nanoTime();
-        String response = restTemplate.getForObject(url, String.class);
+        String body = classicRestTemplate.getForObject(url, String.class);
         long durationMs = (System.nanoTime() - start) / 1_000_000L;
-        logger.info("Internal API GET {} completed in {} ms", url, durationMs);
-        return response;
+        logger.info("Classic RestTemplate → internal {} completed in {} ms", url, durationMs);
+        return body;
     }
 }

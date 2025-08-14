@@ -1,3 +1,4 @@
+// src/main/java/com/example/retail/config/RestClientApacheHttpConfig.java
 package com.example.retail.config;
 
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -13,17 +14,21 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
+/*
+ RestClient configuration using Apache HttpClient 5 with connection pooling.
+ Allows tuning of max connections and idle connection eviction for high-throughput scenarios.
+*/
 @Configuration
-public class RestClientApacheConfig {
+public class RestClientApacheHttpConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(RestClientApacheConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(RestClientApacheHttpConfig.class);
 
     @Value("${base.url}")
     private String baseUrl;
 
-    @Bean
-    public RestClient restClient() {
-        logger.info("Configuring RestClient with Apache HttpClient (VT-safe, high-performance)");
+    @Bean("pooledHttpRestClient")
+    public RestClient pooledHttpRestClient() {
+        logger.info("Configuring RestClient (Apache HttpClient pooled, VT-safe)");
         logger.info("Base URL: {}", baseUrl);
 
         PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
@@ -43,8 +48,4 @@ public class RestClientApacheConfig {
                 .build();
     }
 
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
 }
