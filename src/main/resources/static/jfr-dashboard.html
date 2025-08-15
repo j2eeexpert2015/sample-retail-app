@@ -4,90 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JFR Recording Control</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-        }
-        .section {
-            margin: 20px 0;
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .btn {
-            padding: 10px 20px;
-            margin: 5px;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            display: inline-block;
-            transition: background 0.3s;
-        }
-        .btn:hover {
-            background: #0056b3;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.2em;
-        }
-        h3 {
-            color: #fff;
-            margin-bottom: 15px;
-        }
-        ol {
-            margin-left: 20px;
-            line-height: 1.8;
-        }
-    </style>
+    <link rel="stylesheet" href="css/jfr-dashboard.css">
 </head>
 <body>
 <div class="container">
-    <h1>🎬 JFR Recording Control</h1>
-
-    <div class="section">
-        <h3>Recording Control</h3>
-        <a href="/jfr/start" class="btn">Start Recording</a>
-        <a href="/jfr/stop" class="btn">Stop Recording</a>
-        <a href="/jfr/status" class="btn">Check Status</a>
+    <div class="header">
+        <h1>🎬 JFR Recording Control</h1>
+        <p>Manage JFR recordings and analyze virtual thread performance</p>
     </div>
 
-    <div class="section">
-        <h3>Custom Recording</h3>
-        <a href="/jfr/start?name=MyTest" class="btn">Start with Custom Name</a>
-    </div>
+    <div class="content">
+        <div class="instructions">
+            <h3>🚀 Quick Start</h3>
+            <ol>
+                <li>Start a recording before running your virtual thread tests</li>
+                <li>Execute your application workload via <a href="vt-test.html">VT Test Runner</a></li>
+                <li>Stop the recording to save data to disk</li>
+                <li>Analyze .jfr files with JDK Mission Control or similar tools</li>
+            </ol>
+        </div>
 
-    <div class="section">
-        <h3>Monitoring</h3>
-        <a href="http://localhost:3000/d/virtual-thread-metrics" target="_blank" class="btn">Grafana Dashboard</a>
-        <a href="/actuator/prometheus" target="_blank" class="btn">Prometheus Metrics</a>
-        <a href="vt-test.html" class="btn">VT Test Runner</a>
-        <a href="vt-monitoring-dashboard.html" class="btn">VT Monitoring</a>
-    </div>
+        <div class="test-section">
+            <h3>📹 Recording Control</h3>
+            <p>Manage JFR recordings for detailed virtual thread analysis</p>
+            <div class="btn-grid">
+                <button class="btn btn-success" onclick="handleJFRAction('/jfr/start', this)">
+                    ▶️ Start Recording<br>
+                    <small>Begin JFR capture</small>
+                </button>
+                <button class="btn btn-danger" onclick="handleJFRAction('/jfr/stop', this)">
+                    ⏹️ Stop Recording<br>
+                    <small>Save to disk</small>
+                </button>
+                <button class="btn btn-info" onclick="checkJFRStatus()">
+                    📊 Check Status<br>
+                    <small>View recording info</small>
+                </button>
+                <button class="btn btn-secondary" onclick="handleJFRAction('/jfr/start?name=CustomTest', this)">
+                    🏷️ Custom Recording<br>
+                    <small>Start with name</small>
+                </button>
+            </div>
+        </div>
 
-    <div class="section">
-        <h4>Instructions:</h4>
-        <ol>
-            <li>Start a recording before running your virtual thread tests</li>
-            <li>Execute your application workload</li>
-            <li>Stop the recording to save data to disk</li>
-            <li>Analyze .jfr files with JDK Mission Control or similar tools</li>
-        </ol>
+        <div class="test-section monitoring-section">
+            <h3>📊 Monitoring & Analysis</h3>
+            <div class="monitoring-grid">
+                <a href="http://localhost:3000/d/virtual-thread-metrics" target="_blank" rel="noopener" class="monitor-link">
+                    📈 Grafana Dashboard
+                </a>
+                <a href="vt-test.html" class="monitor-link">
+                    🧵 VT Test Runner
+                </a>
+                <a href="/actuator/prometheus" target="_blank" rel="noopener" class="monitor-link">
+                    📊 Raw Metrics
+                </a>
+            </div>
+        </div>
+
+        <div class="results">
+            <h3>📋 Recording Status</h3>
+            <div id="status-log">Checking JFR status...\n</div>
+            <button class="clear-btn" onclick="refreshStatus()">Refresh Status</button>
+        </div>
     </div>
 </div>
+
+<script src="js/jfr-dashboard.js"></script>
 </body>
 </html>
