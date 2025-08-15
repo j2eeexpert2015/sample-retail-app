@@ -42,6 +42,18 @@ import java.util.concurrent.TimeUnit;
  * - jfr_virtual_thread_ends_total - Total VT completions
  * - jfr_virtual_thread_pinned_seconds - VT pinning duration histogram
  * - jfr_virtual_thread_pinned_events_total - Total pinning events
+ *
+ * Virtual Thread Creation:
+ * When jfr.enabled=true, this component creates exactly 3 virtual threads:
+ * 1. JFR Event Stream Thread - Created by startLiveEventStreaming() via Thread.startVirtualThread()
+ * 2. JFR Event Processing Thread - Created internally by RecordingStream.start() for event processing
+ * 3. JFR Event Dispatching Thread - Created internally by RecordingStream.start() for event dispatching
+ *
+ * Technical Details:
+ * - RecordingStream.start() is a blocking operation that runs an event processing loop
+ * - JFR system internally creates additional virtual threads for event management
+ * - All 3 virtual threads are part of the JFR monitoring infrastructure
+ * - Setting jfr.enabled=false prevents all 3 virtual threads from being created
  */
 @Component
 public class JFRVirtualThreadListener {
@@ -143,11 +155,12 @@ public class JFRVirtualThreadListener {
      * Implementation: Uses JFRVirtualThreadUtil for core JFR operations
      * Threading: Runs in dedicated virtual thread to avoid blocking application startup
      * Event Processing: Converts JFR events to Prometheus metrics in real-time
+     * Virtual Threads Created: This method creates VT #1, RecordingStream.start() creates VT #2 and #3
      */
     private void startLiveEventStreaming() {
         Thread.startVirtualThread(() -> {
             try {
-                logger.debug("Starting JFR event stream processing thread");
+                logger.debug("🧵 VT #1: Starting JFR event stream processing thread");
 
                 // Create event stream with metric-updating handlers
                 liveStream = JFRVirtualThreadUtil.createEventStream(
@@ -159,6 +172,7 @@ public class JFRVirtualThreadListener {
                 logger.info("📊 JFR live event streaming started - monitoring virtual thread events");
 
                 // Start streaming (this blocks until stream is closed)
+                // Note: RecordingStream.start() internally creates VT #2 and #3 for event processing
                 liveStream.start();
 
             } catch (Exception e) {

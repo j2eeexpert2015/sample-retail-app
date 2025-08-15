@@ -29,6 +29,13 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
+      # Enable iframe embedding for HTML dashboard integration
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      # Allow anonymous access to view dashboards without login
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      # Support for older dashboard features
+      - GF_SECURITY_ANGULAR_SUPPORT_ENABLED=true
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/dashboards:/var/lib/grafana/dashboards

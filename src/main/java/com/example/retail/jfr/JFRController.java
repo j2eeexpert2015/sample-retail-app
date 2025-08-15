@@ -1,5 +1,6 @@
 package com.example.retail.jfr;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jdk.jfr.Recording;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,55 +71,11 @@ public class JFRController {
      * UI Elements: Start/stop/status links and connection to Grafana
      * Target Users: Developers, testers, operations staff
      */
-    @GetMapping("")
-    public String dashboard() {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>JFR Recording Control</title>
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 40px; }
-                    .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
-                    .btn { padding: 10px 20px; margin: 5px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; }
-                    .btn:hover { background: #0056b3; }
-                </style>
-            </head>
-            <body>
-                <h1>🎬 JFR Recording Control</h1>
-                
-                <div class="section">
-                    <h3>Recording Control</h3>
-                    <a href="/jfr/start" class="btn">Start Recording</a>
-                    <a href="/jfr/stop" class="btn">Stop Recording</a>
-                    <a href="/jfr/status" class="btn">Check Status</a>
-                </div>
-                
-                <div class="section">
-                    <h3>Custom Recording</h3>
-                    <a href="/jfr/start?name=MyTest" class="btn">Start with Custom Name</a>
-                </div>
-                
-                <div class="section">
-                    <h3>Monitoring</h3>
-                    <a href="http://localhost:3000" target="_blank" class="btn">Grafana Dashboard</a>
-                    <a href="/actuator/prometheus" target="_blank" class="btn">Prometheus Metrics</a>
-                </div>
-                
-                <div class="section">
-                    <h4>Instructions:</h4>
-                    <ol>
-                        <li>Start a recording before running your virtual thread tests</li>
-                        <li>Execute your application workload</li>
-                        <li>Stop the recording to save data to disk</li>
-                        <li>Analyze .jfr files with JDK Mission Control or similar tools</li>
-                    </ol>
-                </div>
-            </body>
-            </html>
-            """;
-    }
 
+    @GetMapping("")
+    public void dashboard(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/jfr-dashboard.html");
+    }
     /*
      * Starts a new JFR recording for manual analysis and saves to file when stopped.
      *
