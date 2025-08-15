@@ -11,6 +11,7 @@ public class RetailApplication {
         // Set SecurityContextHolder strategy to MODE_INHERITABLETHREADLOCAL
         //SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Kolkata"));
         // Get and print the application's process ID (PID)
         System.out.println("Application PID: " + ProcessHandle.current().pid());
 

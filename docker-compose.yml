@@ -10,6 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # PostgreSQL now allows 2000 concurrent connections (default is 100)
+    # Check/validate : docker exec -it order_postgres psql -U retail_user -d retaildb -c "SHOW max_connections;"
     command: ["postgres", "-c", "max_connections=2000"]
 
   prometheus:
