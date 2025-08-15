@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Thread Test Runner</title>
+    <link rel="stylesheet" href="css/vt-test.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🧵 Virtual Thread Test Runner</h1>
+        <p>Generate virtual thread events and monitor performance in real-time</p>
+    </div>
+
+    <div class="content">
+        <div class="instructions">
+            <h3>🚀 Quick Start</h3>
+            <ol>
+                <li>Open <a href="http://localhost:3000" target="_blank">Grafana</a> → Virtual Thread Metrics dashboard</li>
+                <li>Click test buttons below and watch metrics change in real-time</li>
+                <li>Compare different patterns and their effect on platform threads</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Virtual Thread Tests</h3>
+            <p>Click buttons to generate different VT patterns and see them in Grafana</p>
+            <div class="btn-grid">
+                <button class="btn btn-success" onclick="runTest('burst', 'count=500')">
+                    🚀 Burst Test<br>
+                    <small>500 quick VTs</small>
+                </button>
+                <button class="btn btn-warning" onclick="runTest('pinning', 'count=20&delayMs=200')">
+                    📌 Pinning Test<br>
+                    <small>20 pinning events</small>
+                </button>
+                <button class="btn btn-info" onclick="runTest('structured', 'parallelTasks=50')">
+                    🏗️ Structured Test<br>
+                    <small>50 parallel tasks</small>
+                </button>
+                <button class="btn btn-primary" onclick="runTest('sustained', 'count=30&durationSeconds=20')">
+                    ⏱️ Sustained Test<br>
+                    <small>30 VTs for 20s</small>
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section monitoring-section">
+            <h3>📊 Monitoring Links</h3>
+            <p>Open these in new tabs to watch metrics</p>
+            <div>
+                <a href="http://localhost:3000" target="_blank">📈 Grafana Dashboard</a>
+                <a href="/jfr" target="_blank">🎬 JFR Controller</a>
+                <a href="/actuator/prometheus" target="_blank">📊 Raw Metrics</a>
+            </div>
+        </div>
+
+        <div class="results">
+            <h3>📋 Test Results</h3>
+            <div id="results-log">Ready to run tests. Click buttons above to start...\n</div>
+            <button class="clear-btn" onclick="clearResults()">Clear Results</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/vt-test.js"></script>
+</body>
+</html>
