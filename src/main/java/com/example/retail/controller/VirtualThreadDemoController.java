@@ -79,38 +79,6 @@ public class VirtualThreadDemoController {
         return String.format("Pinning test completed: %d pinning events (%dms each) at %s", count, delayMs, LocalDateTime.now());
     }
 
-    @GetMapping("/structured")
-    public String vtStructured(@RequestParam(defaultValue = "50") int parallelTasks) {
-        logger.info("🏗️ STRUCTURED TEST TRIGGERED - Running {} parallel tasks", parallelTasks);
-
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            List<CompletableFuture<String>> futures = new ArrayList<>();
-
-            for (int i = 0; i < parallelTasks; i++) {
-                final int taskId = i;
-                CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
-                    try {
-                        Thread.sleep(100 + (taskId % 200));
-                        return "Structured-Task-" + taskId + " completed";
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return "Structured-Task-" + taskId + " interrupted";
-                    }
-                }, executor);
-                futures.add(future);
-            }
-
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-            logger.info("✅ STRUCTURED TEST COMPLETED - {} tasks finished", futures.size());
-            return String.format("Structured test completed: %d tasks at %s", futures.size(), LocalDateTime.now());
-
-        } catch (Exception e) {
-            logger.error("❌ STRUCTURED TEST FAILED", e);
-            return "Structured test failed: " + e.getMessage();
-        }
-    }
-
     @GetMapping("/sustained")
     public String vtSustained(@RequestParam(defaultValue = "100") int count,
                               @RequestParam(defaultValue = "30") int durationSeconds) {
