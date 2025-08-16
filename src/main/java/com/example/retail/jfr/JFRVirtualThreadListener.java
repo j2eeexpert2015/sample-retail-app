@@ -1,6 +1,5 @@
-package com.example.retail.listener;
+package com.example.retail.jfr;
 
-import com.example.retail.util.JFRVirtualThreadUtil;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
