@@ -14,9 +14,9 @@ import java.util.concurrent.*;
  */
 @RestController
 @RequestMapping("/vt-demo")
-public class VirtualThreadMonitoringDemoController {
+public class VirtualThreadEventSimulationController {
 
-    private static final Logger logger = LoggerFactory.getLogger(VirtualThreadMonitoringDemoController.class);
+    private static final Logger logger = LoggerFactory.getLogger(VirtualThreadEventSimulationController.class);
 
     @GetMapping("/burst")
     public String vtBurst(@RequestParam(defaultValue = "1000") int count) {
