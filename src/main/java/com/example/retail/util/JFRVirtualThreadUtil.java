@@ -1,4 +1,4 @@
-package com.example.retail.jfr;
+package com.example.retail.util;
 
 import jdk.jfr.Recording;
 import jdk.jfr.consumer.RecordingStream;

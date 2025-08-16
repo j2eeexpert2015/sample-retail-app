@@ -1,5 +1,6 @@
-package com.example.retail.jfr;
+package com.example.retail.controller;
 
+import com.example.retail.util.JFRVirtualThreadUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import jdk.jfr.Recording;
 import org.slf4j.Logger;
