@@ -13,44 +13,38 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
 /*
- * JFR Controller - REST API for Manual JFR Recording Control
+ * JFR Controller - REST API for Manual JFR Recording Control with Backend State Management
  *
- * Provides HTTP endpoints for manual control of JFR recordings independent of automatic monitoring.
- * Uses JFRVirtualThreadUtil for core JFR operations and focuses on:
+ * This controller provides HTTP endpoints for manual control of JFR recordings and maintains
+ * server-side state for last recording tracking. Key features:
+ *
  * - Manual recording start/stop control via REST API
+ * - Backend tracking of last completed recording for analysis
  * - Recording status and information retrieval
  * - File-based recording management for detailed analysis
  * - Simple HTML dashboard for browser-based control
+ * - Automatic state persistence across requests
  *
- * This controller is separate from automatic monitoring and allows users to:
- * - Start on-demand JFR recordings for specific analysis periods
- * - Stop recordings and save them to disk for analysis tools
- * - Check current recording status and configuration
- * - Access a simple web interface for recording control
- *
- * Key Features:
- * - Independent of automatic monitoring (can work without JFRVirtualThreadListener)
- * - Manual control via REST API for integration with other tools
- * - File-based recordings suitable for JDK Mission Control analysis
- * - Configuration via Spring properties for output directory
- * - Simple HTML dashboard for manual testing
+ * Backend State Management:
+ * - Tracks current active recording
+ * - Maintains reference to last completed recording
+ * - Validates file existence before analysis
+ * - Provides centralized recording metadata
  *
  * REST Endpoints:
- * - GET /jfr - Simple HTML dashboard
+ * - GET /jfr - Simple HTML dashboard redirect
  * - GET /jfr/start - Start JFR recording with optional name
  * - GET /jfr/stop - Stop current recording and save to file
- * - GET /jfr/status - Get current recording status and information
- *
- * Use Cases:
- * - Capturing specific test scenarios for detailed analysis
- * - Manual recordings during performance testing
- * - On-demand troubleshooting of virtual thread issues
- * - Integration with automated testing tools
+ * - GET /jfr/analyze-last - Analyze last completed recording (backend managed)
+ * - GET /jfr/analyze - Analyze custom JFR file by path
+ * - GET /jfr/status - Get current recording status and last recording info
  */
 @RestController
 @RequestMapping("/jfr")
@@ -61,32 +55,27 @@ public class JFRController {
     @Value("${jfr.output.dir:jfr-recordings}")
     private String outputDir;
 
-    // Current manual recording state (separate from automatic monitoring)
+    // Current active recording state
     private Recording currentRecording;
 
-    /*
-     * Provides simple HTML dashboard for manual JFR recording control.
-     *
-     * Called by: HTTP GET request to /jfr
-     * When: User visits http://localhost:8080/jfr in browser
-     * Purpose: Offers basic web interface for manual recording operations
-     * UI Elements: Start/stop/status links and connection to Grafana
-     * Target Users: Developers, testers, operations staff
-     */
+    // Backend tracking of last completed recording for analysis
+    private String lastRecordingPath;
+    private String lastRecordingName;
+    private Instant lastRecordingTimestamp;
 
+    /*
+     * Dashboard redirect endpoint - provides simple HTML interface
+     */
     @GetMapping("")
     public void dashboard(HttpServletResponse response) throws IOException {
         response.sendRedirect("/jfr-dashboard.html");
     }
+
     /*
-     * Starts a new JFR recording for manual analysis and saves to file when stopped.
+     * Starts a new JFR recording for manual analysis
      *
-     * Called by: HTTP GET request to /jfr/start
-     * When: User wants to start capturing VT events for detailed analysis
-     * Purpose: Creates file-based JFR recording for tools like JDK Mission Control
-     * Concurrency: Only one manual recording can be active at a time
-     * Configuration: Uses configured output directory for file storage
-     * Duration: Recording continues until manually stopped or application shutdown
+     * Creates a new JFR recording configured for virtual thread monitoring
+     * and starts capturing events. Only one recording can be active at a time.
      */
     @GetMapping("/start")
     public Map<String, String> startRecording(@RequestParam(defaultValue = "Manual-Recording") String name) {
@@ -127,14 +116,11 @@ public class JFRController {
     }
 
     /*
-     * Stops the current JFR recording and saves it to disk for analysis.
+     * Stops the current JFR recording and saves it to disk
      *
-     * Called by: HTTP GET request to /jfr/stop
-     * When: User wants to finalize recording and save data
-     * Purpose: Stops recording, saves .jfr file, and cleans up resources
-     * Output: Creates timestamped .jfr file in configured output directory
-     * Analysis: Generated files can be opened in JDK Mission Control
-     * Cleanup: Releases recording resources and resets state
+     * Finalizes the recording, saves to configured output directory,
+     * and updates backend state to track this as the last recording
+     * available for analysis.
      */
     @GetMapping("/stop")
     public Map<String, String> stopRecording() {
@@ -147,11 +133,15 @@ public class JFRController {
         }
 
         try {
-            // Stop recording and save to file
             String recordingName = currentRecording.getName();
             currentRecording.stop();
 
             Path savedFile = JFRVirtualThreadUtil.saveRecording(currentRecording, outputDir);
+
+            // Update backend state to track this recording for analysis
+            lastRecordingPath = savedFile.toAbsolutePath().toString();
+            lastRecordingName = savedFile.getFileName().toString();
+            lastRecordingTimestamp = Instant.now();
 
             // Clean up recording resources
             JFRVirtualThreadUtil.stopRecording(currentRecording);
@@ -174,14 +164,63 @@ public class JFRController {
         return response;
     }
 
-    /**
-     * Analyze an existing JFR file
-     * GET /jfr/analyze?filePath=/path/to/file.jfr
+    /*
+     * Analyzes the last completed recording using backend-tracked state
+     *
+     * This endpoint uses the server-maintained reference to the most recent
+     * recording, eliminating the need for frontend state management.
+     * Validates file existence before attempting analysis.
+     */
+    @GetMapping("/analyze-last")
+    public ResponseEntity<Map<String, String>> analyzeLastRecording() {
+        Map<String, String> response = new HashMap<>();
+
+        if (lastRecordingPath == null) {
+            response.put("status", "error");
+            response.put("message", "No recent recording found. Please stop a recording first.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            Path jfrFile = Path.of(lastRecordingPath);
+
+            // Validate file existence before analysis
+            if (!Files.exists(jfrFile)) {
+                response.put("status", "error");
+                response.put("message", "Recording file not found: " + lastRecordingName);
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Perform analysis using backend-tracked file
+            JFRVirtualThreadUtil.analyzeRecording(jfrFile);
+
+            response.put("status", "success");
+            response.put("message", "Analysis completed successfully");
+            response.put("analyzedFile", lastRecordingName);
+            response.put("analyzedPath", lastRecordingPath);
+            response.put("recordedAt", lastRecordingTimestamp.toString());
+            response.put("note", "Check application logs for detailed analysis results");
+
+            logger.info("📊 Analyzed last recording: {}", lastRecordingName);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Failed to analyze recording: " + e.getMessage());
+            logger.error("Failed to analyze last recording", e);
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /*
+     * Analyzes a custom JFR file by explicit file path
+     *
+     * This endpoint allows analysis of any JFR file by providing
+     * the full file path. Useful for analyzing older recordings
+     * or files from external sources.
      */
     @GetMapping("/analyze")
-    public ResponseEntity<Map<String, String>> analyzeRecording(
-            @RequestParam String filePath) {
-
+    public ResponseEntity<Map<String, String>> analyzeRecording(@RequestParam String filePath) {
         Map<String, String> response = new HashMap<>();
 
         try {
@@ -201,25 +240,24 @@ public class JFRController {
     }
 
     /*
-     * Returns current JFR recording status and system information.
+     * Returns comprehensive JFR system status including last recording info
      *
-     * Called by: HTTP GET request to /jfr/status
-     * When: User wants to check recording state or system capabilities
-     * Purpose: Provides status information for monitoring and troubleshooting
-     * Information: Recording state, JFR availability, configuration details
-     * Format: JSON response suitable for both human reading and API consumption
+     * Provides complete state information including:
+     * - JFR system capabilities and availability
+     * - Current active recording details
+     * - Last completed recording metadata with file validation
+     * - System configuration details
      */
     @GetMapping("/status")
     public Map<String, Object> getStatus() {
         Map<String, Object> status = new HashMap<>();
 
-        // System capabilities
+        // System capabilities and configuration
         status.put("jfrAvailable", JFRVirtualThreadUtil.isJFRAvailable());
         status.put("outputDirectory", outputDir);
-
-        // Recording state
         status.put("hasActiveRecording", currentRecording != null);
 
+        // Current active recording information
         if (currentRecording != null) {
             status.put("recordingInfo", JFRVirtualThreadUtil.getRecordingInfo(currentRecording));
             status.put("recordingName", currentRecording.getName());
@@ -229,31 +267,51 @@ public class JFRController {
             status.put("recordingInfo", "No active recording");
         }
 
-        // Configuration
+        // Backend-tracked last recording information
+        if (lastRecordingPath != null) {
+            status.put("lastRecording", Map.of(
+                    "fileName", lastRecordingName,
+                    "filePath", lastRecordingPath,
+                    "timestamp", lastRecordingTimestamp.toString(),
+                    "exists", Files.exists(Path.of(lastRecordingPath))
+            ));
+        } else {
+            status.put("lastRecording", null);
+        }
+
+        // System configuration
         status.put("configuration", Map.of(
                 "outputDir", outputDir,
                 "canCreateRecordings", JFRVirtualThreadUtil.isJFRAvailable()
         ));
 
-        logger.debug("JFR status requested - active recording: {}", currentRecording != null);
+        logger.debug("JFR status requested - active: {}, last recording: {}",
+                currentRecording != null, lastRecordingName);
         return status;
     }
 
     /*
-     * Emergency stop for cleaning up recording during application shutdown.
-     * This method is NOT exposed as REST endpoint - internal cleanup only.
+     * Emergency cleanup for application shutdown
      *
-     * Called by: Application shutdown hooks or error recovery
-     * When: Application termination with active recording
-     * Purpose: Prevents data loss by saving recording before shutdown
+     * Ensures active recordings are properly saved even during
+     * unexpected application termination. Updates backend state
+     * to track emergency-saved recordings for later analysis.
      */
     public void emergencyStop() {
         if (currentRecording != null) {
             try {
                 logger.warn("Emergency stop - saving active JFR recording");
-                JFRVirtualThreadUtil.saveRecording(currentRecording, outputDir);
+                Path savedFile = JFRVirtualThreadUtil.saveRecording(currentRecording, outputDir);
+
+                // Update backend state even during emergency shutdown
+                lastRecordingPath = savedFile.toAbsolutePath().toString();
+                lastRecordingName = savedFile.getFileName().toString();
+                lastRecordingTimestamp = Instant.now();
+
                 JFRVirtualThreadUtil.stopRecording(currentRecording);
                 currentRecording = null;
+
+                logger.info("Emergency recording saved: {}", lastRecordingName);
             } catch (Exception e) {
                 logger.error("Failed to save recording during emergency stop", e);
             }
