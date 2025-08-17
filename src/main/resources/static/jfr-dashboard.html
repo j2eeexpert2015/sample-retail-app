@@ -10,7 +10,7 @@
 <div class="container">
     <div class="header">
         <h1>🎬 JFR Recording Control</h1>
-        <p>Manage JFR recordings and analyze virtual thread performance</p>
+        <p>Manage JFR Recordings and analyze Virtual Thread performance</p>
     </div>
 
     <div class="content">
@@ -36,10 +36,6 @@
                 <button class="btn btn-danger" onclick="handleJFRAction('/jfr/stop', this)">
                     ⏹️ Stop Recording<br>
                     <small>Save to disk</small>
-                </button>
-                <button class="btn btn-info" onclick="checkJFRStatus()">
-                    📊 Check Status<br>
-                    <small>View recording info</small>
                 </button>
                 <button class="btn btn-secondary" onclick="handleJFRAction('/jfr/start?name=CustomTest', this)">
                     🏷️ Custom Recording<br>
