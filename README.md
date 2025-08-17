@@ -1,5 +1,3 @@
-# README
-
 ## 🧭 Project Overview
 This repo contains a Spring Boot demo for comparing **platform threads** vs **virtual threads** under load with comprehensive **JFR (Java Flight Recorder)** monitoring and real-time metrics visualization. You can flip virtual threads on/off and change the HTTP port **without** modifying `application.properties`.
 
@@ -43,7 +41,7 @@ mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Dspring.threads.virtual.ena
 - GET `/order/hello` → simple health/demo endpoint
 - GET `/order/placeorder/{productId}` → demo flow that calls a service (e.g., DB or simulated I/O)
 - GET `/jfr` → JFR recording control dashboard
-- GET `/vt-test.html` → Virtual thread test runner UI
+- GET `/virtual-thread-test-dashboard.html` → Virtual thread test runner UI
 
 ## 🎯 JFR Monitoring Features
 
@@ -202,7 +200,7 @@ open http://localhost:3000/d/virtual-thread-metrics
 <button onclick="handleJFRAction('/jfr/stop')">⏹️ Stop Recording</button>
 ```
 
-### 2. VT Test Runner (`vt-test.html`)
+### 2. VT Test Runner (`/virtual-thread-test-dashboard.html`)
 ```html
 <!-- Virtual thread event generation -->
 <button onclick="runTest('burst', 'count=500')">🚀 Burst Test</button>
@@ -216,7 +214,7 @@ open http://localhost:3000/d/virtual-thread-metrics
 # Toggle between platform and virtual threads
 spring.threads.virtual.enabled=true
 
-# JFR monitoring control
+# JFR monitoring control (IMPORTANT: Set to true for event streaming)
 jfr.enabled=true
 jfr.output.dir=jfr-recordings
 ```
@@ -228,6 +226,30 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--spring.threads.virtual.enable
 
 # Virtual threads (comparison)
 mvn spring-boot:run -Dspring-boot.run.arguments="--spring.threads.virtual.enabled=true"
+```
+
+## ⚠️ Important Configuration Notes
+
+### JFR Event Streaming
+For real-time metrics to work, ensure `jfr.enabled=true` in `application.properties`:
+
+```properties
+# CRITICAL: Enable JFR for event streaming
+jfr.enabled=true
+
+# Other JFR settings
+jfr.output.dir=jfr-recordings
+jfr.recording.name=SpringBootApp
+```
+
+### Virtual Thread Configuration
+```properties
+# Enable/disable virtual threads
+spring.threads.virtual.enabled=true
+
+# Security credentials for /security-demo endpoints
+spring.security.user.name=demouser
+spring.security.user.password=demo123
 ```
 
 ## 🔍 Working with `jdk.internal.vm.Continuation` in IntelliJ IDEA
@@ -251,6 +273,24 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--spring.threads.virtual.enable
 ```
 
 This lets the debugger step into `Continuation` frames if you dive deep.
+
+## 🐛 Troubleshooting
+
+### No Metrics in Grafana?
+1. Check `jfr.enabled=true` in `application.properties`
+2. Verify virtual threads are enabled: `spring.threads.virtual.enabled=true`
+3. Look for startup logs: `🚀 Starting JFR Virtual Thread monitoring`
+4. Test endpoints: `http://localhost:8080/virtual-thread-test-dashboard.html`
+
+### JFR Dashboard Issues?
+1. Navigate to: `http://localhost:8080/jfr-dashboard.html`
+2. Check JFR status via the dashboard
+3. Ensure JDK 21+ is being used
+
+### Virtual Thread Test UI?
+- Correct URL: `http://localhost:8080/virtual-thread-test-dashboard.html`
+- Check browser console for JavaScript errors
+- Verify controller endpoints are responding: `/vt-demo/burst`, `/vt-demo/pinning`, `/vt-demo/sustained`
 
 ## 👤 About the Instructor
 [![Ayan Dutta - Instructor](https://img-c.udemycdn.com/user/200_H/5007784_d6b8.jpg)](https://www.udemy.com/user/ayandutta/)
@@ -407,7 +447,7 @@ src/main/java/com/example/retail/
 
 src/main/resources/static/
 ├── jfr-dashboard.html                 # JFR control UI
-├── vt-test.html                       # VT testing UI
+├── virtual-thread-test-dashboard.html # VT testing UI
 └── css/ & js/                         # Styling & JavaScript
 ```
 

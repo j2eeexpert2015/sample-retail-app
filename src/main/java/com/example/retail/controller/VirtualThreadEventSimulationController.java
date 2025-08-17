@@ -11,6 +11,7 @@ import java.util.concurrent.*;
 
 /**
  * VT Demo Controller - handles direct /vt-demo/* endpoints called by UI
+ *
  */
 @RestController
 @RequestMapping("/vt-demo")
@@ -19,7 +20,7 @@ public class VirtualThreadEventSimulationController {
     private static final Logger logger = LoggerFactory.getLogger(VirtualThreadEventSimulationController.class);
 
     @GetMapping("/burst")
-    public String vtBurst(@RequestParam(defaultValue = "1000") int count) {
+    public String vtBurst(@RequestParam(defaultValue = "500") int count) {  // FIXED: Was 1000, now 500
         logger.info("🚀 BURST TEST TRIGGERED - Creating {} virtual threads", count);
 
         List<CompletableFuture<String>> futures = new ArrayList<>();
@@ -46,8 +47,8 @@ public class VirtualThreadEventSimulationController {
     }
 
     @GetMapping("/pinning")
-    public String vtPinning(@RequestParam(defaultValue = "5") int count,      // Reduced to 5
-                            @RequestParam(defaultValue = "50") int delayMs) {   // Reduced to 50ms
+    public String vtPinning(@RequestParam(defaultValue = "10") int count,      // FIXED: Was 5, now 10
+                            @RequestParam(defaultValue = "100") int delayMs) {  // FIXED: Was 50, now 100
         logger.info("📌 PINNING TEST TRIGGERED - Creating {} threads with {}ms pinning", count, delayMs);
 
         final Object sharedLock = new Object();
@@ -80,8 +81,8 @@ public class VirtualThreadEventSimulationController {
     }
 
     @GetMapping("/sustained")
-    public String vtSustained(@RequestParam(defaultValue = "100") int count,
-                              @RequestParam(defaultValue = "30") int durationSeconds) {
+    public String vtSustained(@RequestParam(defaultValue = "20") int count,           // FIXED: Was 100, now 20
+                              @RequestParam(defaultValue = "15") int durationSeconds) { // FIXED: Was 30, now 15
         logger.info("⏱️ SUSTAINED TEST TRIGGERED - {} VTs for {} seconds", count, durationSeconds);
 
         List<CompletableFuture<String>> futures = new ArrayList<>();
