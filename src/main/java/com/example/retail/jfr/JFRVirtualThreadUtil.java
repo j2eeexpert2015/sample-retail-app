@@ -1,14 +1,19 @@
 package com.example.retail.jfr;
 
 import jdk.jfr.Recording;
+import jdk.jfr.consumer.RecordedEvent;
+import jdk.jfr.consumer.RecordingFile;
 import jdk.jfr.consumer.RecordingStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /*
@@ -40,7 +45,7 @@ public class JFRVirtualThreadUtil {
     private static final Logger logger = LoggerFactory.getLogger(JFRVirtualThreadUtil.class);
 
     // Default configuration values
-    private static final Duration DEFAULT_PINNING_THRESHOLD = Duration.ofMillis(20);
+    private static final Duration DEFAULT_PINNING_THRESHOLD = Duration.ofMillis(1);
     private static final String DEFAULT_OUTPUT_DIR = "jfr-recordings";
 
     /*
@@ -226,4 +231,109 @@ public class JFRVirtualThreadUtil {
                 recording.getState(),
                 recording.getDuration());
     }
+
+    /**
+     * Analyze a JFR recording file
+     */
+    // Replace the analyzeRecording method and fix the logging issues:
+
+    public static void analyzeRecording(Path jfrFile) {
+        logger.info("📊 Analyzing JFR Recording: {}", jfrFile.getFileName());
+
+        Map<String, Integer> eventCounts = new HashMap<>();
+
+        try (RecordingFile recordingFile = new RecordingFile(jfrFile)) {
+            while (recordingFile.hasMoreEvents()) {
+                RecordedEvent event = recordingFile.readEvent();
+                String eventType = event.getEventType().getName();
+
+                eventCounts.merge(eventType, 1, Integer::sum);
+
+                // Only log significant virtual thread events (not every start/end)
+                if (eventType.contains("VirtualThread")) {
+                    logVirtualThreadEvent(event);
+                }
+            }
+
+            logSummary(eventCounts);
+
+        } catch (IOException e) {
+            logger.error("❌ Error analyzing JFR file: {}", jfrFile, e);
+        }
+    }
+
+    // Fix the logVirtualThreadEvent method to reduce spam:
+    private static void logVirtualThreadEvent(RecordedEvent event) {
+        String eventType = event.getEventType().getName();
+        String emoji = getEventEmoji(eventType);
+
+        switch (eventType) {
+            case "jdk.VirtualThreadStart":
+            case "jdk.VirtualThreadEnd":
+                // Only log these at TRACE level to reduce spam, or skip entirely
+                break;
+
+            case "jdk.VirtualThreadPinned":
+                long durationMs = event.getDuration().toMillis();
+                logger.info("{} VT Pinned for {}ms", emoji, durationMs);
+                if (durationMs > 100) {
+                    logger.warn("⚠️ Long pinning event detected: {}ms", durationMs);
+                }
+                break;
+
+            case "jdk.VirtualThreadSubmitFailed":
+                logger.warn("{} VT Submit Failed - Scheduler overwhelmed!", emoji);
+                break;
+        }
+    }
+
+    // Fix the completion rate formatting in logSummary:
+    private static void logSummary(Map<String, Integer> eventCounts) {
+        logger.info("📈 JFR Event Summary:");
+
+        eventCounts.entrySet().stream()
+                .filter(entry -> entry.getKey().contains("Thread"))
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .forEach(entry ->
+                        logger.info("  {}: {}", entry.getKey(), entry.getValue()));
+
+        int virtualStarted = eventCounts.getOrDefault("jdk.VirtualThreadStart", 0);
+        int virtualEnded = eventCounts.getOrDefault("jdk.VirtualThreadEnd", 0);
+        int pinningEvents = eventCounts.getOrDefault("jdk.VirtualThreadPinned", 0);
+        int submitFailed = eventCounts.getOrDefault("jdk.VirtualThreadSubmitFailed", 0);
+
+        logger.info("🎯 Virtual Thread Metrics:");
+        logger.info("  Virtual Threads Created: {}", virtualStarted);
+        logger.info("  Virtual Threads Completed: {}", virtualEnded);
+        logger.info("  Still Running: {}", virtualStarted - virtualEnded);
+        logger.info("  Pinning Events: {}", pinningEvents);
+        logger.info("  Submit Failures: {}", submitFailed);
+
+        if (virtualStarted > 0) {
+            double completionRate = (double) virtualEnded / virtualStarted * 100;
+            logger.info("  Completion Rate: {:.1f}%", completionRate); // Fixed formatting
+        }
+
+        if (pinningEvents > 0) {
+            logger.warn("⚠️ {} pinning events detected - consider reviewing synchronized blocks", pinningEvents);
+        }
+
+        if (submitFailed > 0) {
+            logger.error("❌ {} submit failures - virtual thread scheduler may be overwhelmed", submitFailed);
+        }
+    }
+
+    /**
+     * Returns emoji for event types
+     */
+    private static String getEventEmoji(String eventType) {
+        return switch (eventType) {
+            case "jdk.VirtualThreadStart" -> "🟢";
+            case "jdk.VirtualThreadEnd" -> "🔴";
+            case "jdk.VirtualThreadPinned" -> "📌";
+            case "jdk.VirtualThreadSubmitFailed" -> "❌";
+            default -> "🧵";
+        };
+    }
+
 }

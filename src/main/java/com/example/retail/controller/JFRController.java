@@ -6,6 +6,7 @@ import jdk.jfr.Recording;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -171,6 +172,32 @@ public class JFRController {
         }
 
         return response;
+    }
+
+    /**
+     * Analyze an existing JFR file
+     * GET /jfr/analyze?filePath=/path/to/file.jfr
+     */
+    @GetMapping("/analyze")
+    public ResponseEntity<Map<String, String>> analyzeRecording(
+            @RequestParam String filePath) {
+
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            Path jfrFile = Path.of(filePath);
+            JFRVirtualThreadUtil.analyzeRecording(jfrFile);
+
+            response.put("status", "success");
+            response.put("message", "JFR file analyzed successfully");
+            response.put("note", "Check application logs for analysis results");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", "Failed to analyze JFR file: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     /*

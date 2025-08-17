@@ -81,18 +81,19 @@ public class JFRVirtualThreadListener {
      * Integration: Metrics are automatically scraped by Prometheus via /actuator/prometheus
      */
     public JFRVirtualThreadListener(MeterRegistry registry) {
+        // COUNTER: Tracks total VT creations (monotonic - only increases)
         this.startCounter = Counter.builder("jfr_virtual_thread_starts_total")
                 .description("Total number of virtual thread start events detected by JFR")
                 .register(registry);
-
+        // COUNTER: Tracks total VT completions (monotonic - only increases)
         this.endCounter = Counter.builder("jfr_virtual_thread_ends_total")
                 .description("Total number of virtual thread end events detected by JFR")
                 .register(registry);
-
+        // TIMER: Tracks duration distribution of pinning events (histogram)
         this.pinnedTimer = Timer.builder("jfr_virtual_thread_pinned_seconds")
                 .description("Duration histogram of virtual thread pinning events")
                 .register(registry);
-
+        // COUNTER: Tracks total pinning events (monotonic - only increases)
         this.pinnedEventCounter = Counter.builder("jfr_virtual_thread_pinned_events_total")
                 .description("Total number of virtual thread pinning events detected")
                 .register(registry);

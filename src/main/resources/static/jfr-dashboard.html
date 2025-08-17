@@ -20,7 +20,8 @@
                 <li>Start a recording before running your virtual thread tests</li>
                 <li>Execute your application workload via <a href="vt-test.html">VT Test Runner</a></li>
                 <li>Stop the recording to save data to disk</li>
-                <li>Analyze .jfr files with JDK Mission Control or similar tools</li>
+                <li>Click "Analyze Last Recording" to get analysis in server logs</li>
+                <li>Optional: Analyze .jfr files with JDK Mission Control for deeper analysis</li>
             </ol>
         </div>
 
@@ -43,6 +44,10 @@
                 <button class="btn btn-secondary" onclick="handleJFRAction('/jfr/start?name=CustomTest', this)">
                     🏷️ Custom Recording<br>
                     <small>Start with name</small>
+                </button>
+                <button class="btn btn-success" onclick="analyzeLastRecording()" id="analyze-btn">
+                    🔍 Analyze Last Recording<br>
+                    <small>Check server logs</small>
                 </button>
             </div>
         </div>

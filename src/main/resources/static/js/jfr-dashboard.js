@@ -2,6 +2,7 @@
 
 // Persistent storage for recording history
 let recordingHistory = [];
+let lastRecordingPath = null;
 
 function addToLog(message, type = 'info') {
     const log = document.getElementById('status-log');
@@ -61,6 +62,7 @@ function handleJFRAction(url, button) {
 
                     addToLog(`⏹️ Recording stopped: ${data.recordingName}`, 'success');
                     addToLog(`💾 File saved: ${data.fileName}`, 'success');
+                    lastRecordingPath = data.filePath;
                     addToLog(`📁 Full path: ${data.filePath}`, 'info');
                     addToLog(`🎯 REMEMBER: Your recording is saved as "${data.fileName}"`, 'success');
                     showNotification(`Recording saved: ${data.fileName}`, 'success');
@@ -186,6 +188,32 @@ function showNotification(message, type) {
             notification.remove();
         }, 300);
     }, 4000);
+}
+
+function analyzeLastRecording() {
+    if (!lastRecordingPath) {
+        addToLog('❌ No recent recording found. Please stop a recording first.', 'error');
+        showNotification('No recording to analyze', 'error');
+        return;
+    }
+
+    addToLog(`🔍 Starting analysis of: ${lastRecordingPath}`, 'info');
+
+    fetch(`/jfr/analyze?filePath=${encodeURIComponent(lastRecordingPath)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                addToLog('✅ Analysis completed! Check server logs for detailed results', 'success');
+                showNotification('Analysis completed - check server logs', 'success');
+            } else {
+                addToLog(`❌ Analysis failed: ${data.message}`, 'error');
+                showNotification('Analysis failed: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            addToLog(`❌ Analysis request failed: ${error.message}`, 'error');
+            showNotification('Analysis request failed', 'error');
+        });
 }
 
 // Initialize when page loads
