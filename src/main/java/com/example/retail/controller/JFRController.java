@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -262,7 +263,9 @@ public class JFRController {
             status.put("recordingInfo", JFRVirtualThreadUtil.getRecordingInfo(currentRecording));
             status.put("recordingName", currentRecording.getName());
             status.put("recordingState", currentRecording.getState().toString());
-            status.put("recordingDuration", currentRecording.getDuration().toString());
+            Duration duration = currentRecording.getDuration();
+            String durationStr = duration != null ? duration.toString() : "Running (no duration yet)";
+            status.put("recordingDuration", durationStr);
         } else {
             status.put("recordingInfo", "No active recording");
         }
